@@ -1,0 +1,31 @@
+index;Name;Code;SMILES
+0;carboxy;COOH;[*]C(O)=O |$R;;;$|
+1;fluorine;F;[*]F |$R$|
+2;chlorine;Cl;[*]Cl |$R;$|
+3;acetoxy;OCOCH3;[*]OC(C)=O |$R;;;;$|
+4;benzene;Ph;[*]C1=CC=CC=C1 |$R;;;;;;$|
+5;bromine;Br;[*]Br |$R$|
+6;nitroso;NO;[*]N=O |$R;;$|
+7;thyol;SH;[*]S |$R;$|
+8;methyl;CH3;[*]C |$R;$|
+9;ethoxy;OEt;[*]OCC |$R;;;$|
+10;ethyl epoxide;EEPO;[*]CCC1CO1 |$R;;;;;$|
+11;cyano;CN;[*]C#N |$R;;$|
+12;tert-butyl;tBu;[*]C(C)(C)C |$R;;;;$|
+13;sulfonic acid;SO3H;[*]S(=O)(O)=O |$R;;;;$|
+14;thial;CHS;[*]C([H])=S |$R;;;$|
+15;iodine;I;[*]I |$R$|
+16;nitro;NO2;[*][N+]([O-])=O |$R;;;$|
+17;formyl;CHO;[*]C([H])=O |$R;;;$|
+18;hydrogen;H;[*][H] |$R;$|
+19;ethoxymethyl epoxide;EMEPO;[*]COCC1CO1 |$R;;;;;;$|
+20;4,4-dimethyl-3,4-dihydro-2H-pyrrol-1-ium-5-ide;DMPE;[*]N1CCC(C)(C)[C]1 |$R;;;;;;;$|
+21;methyl epoxide;MEPO;[*]CC1CO1 |$R;;;;$|
+22;propoxy;OProp;[*]OCCC |$R;;;;$|
+23;oxiethyl epoxide;OEEPO;[*]OCC1CO1 |$R;;;;;$|
+24;epoxide;EPO;[*]C1CO1 |$R;;;$|
+25;amine;NH2;[*]N |$R;$|
+26;sulfinic acid;SO2H;[*]S(O)=O |$R;;;$|
+27;keto;O;[*]=O |$R;$|
+28;methoxy;OMe;[*]OC |$R;;$|
+29;hydroxyl;OH;[*]O |$R;$|

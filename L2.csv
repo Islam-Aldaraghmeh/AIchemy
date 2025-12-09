@@ -1,0 +1,37 @@
+index;Name;Code;SMILES
+0;1,3-diphenyl-1H-imidazol-3-ium-2-ide ;PHEN;[*]C1=C([*])C([*])=C(N2C([*])=C([*])N(C3=C([*])C([*])=C([*])C([*])=C3[*])[C]2)C([*])=C1[*] |$Q;;;R2;;R4;;;;R5;;R5;;;;R4;;R2;;Q;;R1;;R3;;;R3;;R1$|
+1;benzene;BENZ;[*]C1=C([*])C([*])=C([*])C([*])=C1[*] |$Q;;;R2;;R1;;Q;;R2;;R1$|
+2;hydrazine;HDZN;[*][*] |$Q;Q$|
+3;1,3-di(pyridin-2-yl)-1H-imidazol-3-ium-2-ide;PYEN;[*]C1=C([*])N=C(N2C([*])=C([*])N(C3=NC([*])=C([*])C([*])=C3[*])[C]2)C([*])=C1[*] |$Q;;;R2;;;;;R4;;R4;;;;;R2;;Q;;R1;;R3;;;R3;;R1$|
+4;indeno[1,2-b]fluorene;INFL;[*]C1=C([*])C2=C(C([*])=C1[*])C3=C([*])C4=C([*])C5=C(C([*])=C([*])C([*])=C5[*])C4=C([*])C3=C2[*] |$Q;;;R2;;;;R3;;R1;;;R5;;;R4;;;;R3;;R1;;Q;;R2;;;R5;;;R4$|
+5;naphthalene;NAPT;[*]C1=C([*])C([*])=C2C(C([*])=C([*])C([*])=C2[*])=C1[*] |$Q;;;R3;;R2;;;;R2;;R3;;Q;;R1;;R1$|
+6;3a,7a-dihydroanthra[2,1,9-def:6,5,10-d'e'f']diisochromene-1,3,8,10-tetraone;PTCD;O=C([*]C1=O)C2=C(C1C([*])=C3[*])C4=C3C(C([*])=C([*])C5C([*]C6=O)=O)=C(C5=C6C([*])=C7[*])C7=C4C([*])=C2[*] |$;;Q;;;;;;;R1;;R3;;;;;R4;;R2;;;Q;;;;;;;;R1;;R3;;;;R4;;R2$|
+7;4a,10b-dihydro-s-indaceno[1,2-b:5,6-b']dithiophene;4IDT;[*]C1=C([*])C2=C([*])C3C(C2S1)=C([*])C4=C([*])C5=C(SC([*])=C5[*])C4=C3[*] |$Q;;;R1;;;R2;;;;;;R3;;;R2;;;;;Q;;R1;;;R3$|
+8;benzo[1,2-d:4,5-d']bis(thiazole);BBTZ;[*]C(S1)=NC2=C1C([*])=C(N=C([*])S3)C3=C2[*] |$Q;;;;;;;R1;;;;Q;;;;R1$|
+9;(E)-1,2-diphenylethene;DPEL;[*]C(C([*])=C1[*])=C([*])C([*])=C1/C=C/C2=C([*])C([*])=C([*])C([*])=C2[*] |$Q;;;R4;;R2;;R1;;R3;;;;;;R2;;R4;;Q;;R1;;R3$|
+10;(E)-4,4'-dimethyl-[6,6'-bithieno[3,2-b]pyrrolylidene]-5,5'(4H,4'H)-dione;TIDA;O=C1N(C)C2=C(SC([*])=C2[*])/C1=C3C(SC([*])=C4[*])=C4N(C)C/3=O |$;;;;;;;;Q;;R1;;;;;;Q;;R1;;;;;$|
+11;1,5-dihydropyrrolo[2,3-f]indole;DHPI;[*]C(N1[H])=C([*])C2=C1C([*])=C(C([*])=C([*])N3[H])C3=C2[*] |$Q;;;;;R2;;;;R1;;;R2;;Q;;;;;R1$|
+12;1,4-diphenylbuta-1,3-diyne;DPBY;[*]C(C([*])=C1[*])=C([*])C([*])=C1C#CC#CC2=C([*])C([*])=C([*])C([*])=C2[*] |$Q;;;R4;;R1;;R2;;R3;;;;;;;;R1;;R3;;Q;;R2;;R3$|
+13;pyrene-1,3,6,8(2H,7H)-tetraone;PYTO;O=C([*]C1=O)C2=C([*])C([*])=C3C4=C2C1=C([*])C([*])=C4C([*]C3=O)=O |$;;Q;;;;;R1;;R2;;;;;;R2;;R1;;;Q;;;$|
+14;1,3-diethyl-4,7-diphenyl-1H-benzo[d]imidazol-3-ium-2-ide;TIEN;CCN([C]N1CC)C2=C1C(C3=CC([*])=C([*])C([*])=C3[*])=C([*])C([*])=C2C4=C([*])C([*])=C([*])C([*])=C4 |$;;;;;;;;;;;;;R1;;Q;;R2;;R3;;R4;;R3;;;;R4;;R2;;Q;;R1;$|
+15;1,5c-dihydrofluoreno[4,3-c]fluorene;DFFE;[*]C1=C([*])C2=C(C([*])=C1[*])C3=C4C(C(C(C([*])=C([*])C([*])=C5[*])=C5C6[*])=C6C([*])=C4[*])C([*])=C([*])C3=C2[*] |$Q;;;R2;;;;R3;;R1;;;;;;;R3;;R1;;Q;;R2;;;R4;;;R5;;R6;;R6;;R5;;;R4$|
+16;anthracene;ANTR;[*]C1=C2C(C([*])=C([*])C([*])=C2[*])=C([*])C3=C([*])C([*])=C([*])C([*])=C31 |$R1;;;;;R2;;R4;;Q;;R3;;R1;;;R3;;Q;;R4;;R2;$|
+17;2,2'-bipyridine;2BPD;[*]C1=C([*])C([*])=C(C2=NC([*])=C([*])C([*])=C2[*])N=C1[*] |$Q;;;R1;;R3;;;;;R2;;Q;;R1;;R3;;;R2$|
+18;1,7-dihydro-s-indacene;DHSI;[*]C1=C2C(C([*])=C([*])C2[*])=C([*])C3=C1C([*])C([*])=C3[*] |$R1;;;;;R2;;Q;;R3;;R1;;;;R2;;Q;;R3$|
+19;3,3'-bipyridine;3BPD;[*]C1=C([*])C([*])=C(C2=C([*])N=C([*])C([*])=C2[*])C([*])=N1 |$Q;;;R1;;R3;;;;R2;;;Q;;R1;;R3;;R2;$|
+20;s-indacene-1,3,5,7(2H,6H)-tetraone;INTO;O=C([*]C1=O)C2=C1C([*])=C(C([*]C3=O)=O)C3=C2[*] |$;;Q;;;;;;R;;;Q;;;;;;R$|
+21;1,1':4',1''-terphenyl;TPNY;[*]C(C([*])=C1[*])=C([*])C([*])=C1C(C([*])=C2[*])=C([*])C([*])=C2C3=C([*])C([*])=C([*])C([*])=C3[*] |$Q;;;R5;;R6;;R4;;R3;;;;R1;;R2;;R2;;R1;;;;R3;;R4;;Q;;R5;;R6$|
+22;benzo[1,2-b:4,5-b']dithiophene;BDTP;[*]C(S1)=C([*])C2=C1C([*])=C(C([*])=C([*])S3)C3=C2[*] |$Q;;;;R2;;;;R1;;;R2;;Q;;;;R1$|
+23;pyrene;PYRN;[*]C1=C([*])C2=C(C(C([*])=C3[*])=C1[*])C(C3=C([*])C([*])=C4[*])=C4C([*])=C2[*] |$Q;;;R3;;;;;R2;;R1;;R4;;;;R3;;Q;;R4;;;R2;;R1$|
+24;1,4-bis(phenylethynyl)benzene;BPYB;[*]C(C([*])=C1[*])=C([*])C([*])=C1C#CC(C([*])=C2[*])=C([*])C([*])=C2C#CC3=C([*])C([*])=C([*])C([*])=C3[*] |$Q;;;R4;;R1;;R3;;R2;;;;;;R6;;R5;;R5;;R6;;;;;;R1;;R4;;Q;;R3;;R2$|
+25;naphtho[1,2-b:5,6-b']dithiophene;NDTP;[*]C(S1)=C([*])C2=C1C(C([*])=C([*])C3=C4SC([*])=C3[*])=C4C([*])=C2[*] |$Q;;;;R1;;;;;R3;;R2;;;;;Q;;R1;;;R3;;R2$|
+26;indeno[2,1-a]indene;INDE;[*]C(C([*])=C1[*])=C([*])C2=C1C([*])=C3C2=C([*])C4=C([*])C([*])=C([*])C([*])=C43 |$R1;;;Q;;R2;;R3;;;;R4;;;;R4;;;R2;;Q;;R1;;R3;$|
+27;(E)-1,2-diphenyldiazene;DPDA;[*]C(C([*])=C1[*])=C([*])C([*])=C1/N=N/C2=C([*])C([*])=C([*])C([*])=C2[*] |$Q;;;R4;;R2;;R1;;R3;;;;;;R2;;R4;;Q;;R1;;R3$|
+28;benzo[1,2-b:4,5-b']difuran;BDFN;[*]C(O1)=C([*])C2=C1C([*])=C(C([*])=C([*])O3)C3=C2[*] |$Q;;;;R2;;;;R1;;;R2;;Q;;;;R1$|
+29;indeno[2,1-b]indeno[1',2':4,5]thieno[2,3-d]thiophene;IITT;[*]C1=C([*])C(C([*])=C(S2)C3=C4C2=C5C(S4)=C([*])C6=C5C([*])=C([*])C([*])=C6[*])=C3C([*])=C1[*] |$Q;;;R2;;;R4;;;;;;;;;;R4;;;;R3;;R1;;Q;;R2;;;R3;;R1$|
+30;2,2'-bithiophene;BTPH;[*]C1=C([*])C([*])=C(C2=C([*])C([*])=C([*])S2)S1 |$Q;;;R2;;R1;;;;R1;;R2;;Q;;$|
+31;1,2-diphenylethyne;DPEY;[*]C(C([*])=C1[*])=C([*])C([*])=C1C#CC2=C([*])C([*])=C([*])C([*])=C2[*] |$Q;;;R4;;R1;;R3;;R2;;;;;;R1;;R4;;Q;;R3;;R2$|
+32;3a,9a-dihydro-s-indaceno[2,1-b:6,5-b']dithiophene;3IDT;[*]C(S1)=C([*])C2=C1C([*])=C3C2=C([*])C4C([*])=C5C(C([*])=C([*])S5)C4=C3[*] |$Q;;;;R1;;;;R2;;;;R3;;;R2;;;;R1;;Q;;;;R3$|
+33;1,1'-biphenyl;BPNY;[*]C1=C([*])C([*])=C(C2=C([*])C([*])=C([*])C([*])=C2[*])C([*])=C1[*] |$Q;;;R1;;R3;;;;R4;;R2;;Q;;R1;;R3;;R4;;R2$|
+34;4b,4c,5,6-tetrahydropentaleno[1,2-a:4,5-a']diindene;TPDI;[*]C1=C([*])C(C([*])=C2C3C4C(C(C(C([*])=C([*])C([*])=C5[*])=C5C6[*])=C6C4[*])=C2[*])=C3C([*])=C1[*] |$Q;;;R2;;;R4;;;;;;;;R3;;R1;;Q;;R2;;;R4;;;R5;;R5;;;R3;;R1$|
+35;thieno[3,2-b]thiophene;TTPH;[*]C1=C([*])C2=C(S1)C([*])=C([*])S2 |$Q;;;R;;;;;R;;Q;$|

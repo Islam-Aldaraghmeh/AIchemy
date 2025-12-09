@@ -1,0 +1,13 @@
+index;Name;Code;SMILES
+0;carboxylic acid;COOH;[*]C([O])=O |$Q;;;$|
+1;hidroxylamine;NHOH;[*]NO |$Q;;$|
+2;methylhydrazine;NHNH2;[*]CNN |$Q;;;$|
+3;chlorine;Cl;[*]Cl |$Q;$|
+4;acetohydrazide;CONHNH2;[*]C(NN)=O |$Q;;;;$|
+5;bromine;Br;[*]Br |$Q;$|
+8;aldehyde;CHO;[*]C([H])=O |$Q;;;$|
+9;boronic acid;BOH2;[*]B(O)O |$Q;;$|
+10;betacetoenol;COCHCHOH;[*]C(CCO)=O |$Q;;;;$|
+11;amine;NH2;[*]N |$Q;$|
+12;oxigem;O;[*]O |$Q;$|
+13;nitrile;CHCN;[*]CC#N |$Q;;;$|
