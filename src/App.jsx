@@ -445,31 +445,15 @@ function App() {
             )}
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-2">
             <div className="glass-panel glow-border rounded-2xl p-4">
-              <div className="flex items-center justify-between text-sm text-slate-200/80">
-                <span>Pick from /cifs</span>
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-100 ring-1 ring-emerald-400/30">
-                  {cifList.length ? activeCif + 1 : 0} / {cifList.length || 0}
+              <div className="flex items-center justify-between text-sm text-emerald-100">
+                <p>Available CIFs</p>
+                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-100 ring-1 ring-emerald-400/30">
+                  {cifList.length} files
                 </span>
               </div>
-              <input
-                type="range"
-                min={0}
-                max={Math.max(cifList.length - 1, 0)}
-                value={Math.min(activeCif, Math.max(cifList.length - 1, 0))}
-                onChange={(e) => setActiveCif(Number(e.target.value))}
-                className="mt-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-stroke/60 accent-emerald-400"
-                disabled={!cifList.length}
-              />
-              <p className="mt-3 font-mono text-[13px] text-emerald-100">{activeFile?.path || 'No file selected'}</p>
-              <p className="text-sm text-slate-300">Slide or click a file card below to swap the active .cif.</p>
-              <div className="mt-3 text-xs text-slate-400">Rescan to include any new files you drop into /public/cifs.</div>
-            </div>
-
-            <div className="glass-panel glow-border rounded-2xl p-4">
-              <p className="text-sm text-emerald-100">Available CIFs</p>
-              <div className="mt-3 grid gap-2">
+              <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
                 {cifLoading && <p className="text-xs text-slate-300">Scanning directory...</p>}
                 {!cifLoading && cifList.length === 0 && <p className="text-xs text-slate-300">No files found. Drop .cif files into /public/cifs.</p>}
                 {cifList.map((file, idx) => (

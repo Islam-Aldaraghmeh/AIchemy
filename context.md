@@ -32,4 +32,3 @@ do suffer from: (1) computationally expensive; (2) they do cover small subspace 
 The lack of such a system forces reliance on human intuition biased toward familiar chemistries, slows
 discovery by an order of magnitude, and leads to costly mismatches between lab-screened COFs and
 those that survive real Saudi deployment conditions.
-1
