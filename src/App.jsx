@@ -5,6 +5,10 @@ const envelopeFields = [
   { key: 'humidity', label: 'Humidity', min: 0, max: 100, unit: '%' },
   { key: 'sunlight', label: 'Sunlight Exposure', min: 0, max: 24, unit: 'hrs/day' },
   { key: 'acidity', label: 'Acidity', min: 0, max: 14, unit: 'pH' },
+  { key: 'pressure', label: 'Pressure', min: 1, max: 100, unit: ' bar' },
+  { key: 'salinity', label: 'Salinity', min: 0, max: 100000, unit: ' ppm' },
+  { key: 'impurities', label: 'Impurity load', min: 0, max: 1000, unit: ' ppm' },
+  { key: 'duration', label: 'Duration', min: 100, max: 10000, unit: ' cycles' },
 ]
 
 const kpiOptions = [
@@ -13,6 +17,14 @@ const kpiOptions = [
   { key: 'h2_uptake', label: 'H₂ uptake' },
   { key: 'o2_uptake', label: 'O₂ uptake' },
   { key: 'o2_diff', label: 'O₂ diffusivity' },
+  { key: 'co2_n2_selectivity', label: 'CO₂/N₂ selectivity' },
+  { key: 'h2_ch4_selectivity', label: 'H₂/CH₄ selectivity' },
+  { key: 'water_flux', label: 'Water flux / permeance' },
+  { key: 'salt_rejection', label: 'Salt rejection rate' },
+  { key: 'qst', label: 'Isosteric heat of adsorption (Qₛₜ)' },
+  { key: 'bulk_modulus', label: 'Bulk/Shear modulus' },
+  { key: 'td', label: 'Thermal decomposition (Tₙ)' },
+  { key: 'band_gap', label: 'Electronic band gap' },
 ]
 
 const fallbackCifs = [
@@ -28,7 +40,16 @@ const TopIcon = ({ children }) => (
 )
 
 function App() {
-  const [envelope, setEnvelope] = useState({ temperature: 65, humidity: 55, sunlight: 8, acidity: 7 })
+  const [envelope, setEnvelope] = useState({
+    temperature: 65,
+    humidity: 55,
+    sunlight: 8,
+    acidity: 7,
+    pressure: 20,
+    salinity: 35000,
+    impurities: 50,
+    duration: 1000,
+  })
   const [saveName, setSaveName] = useState('desert-prototype')
   const [selectedKpis, setSelectedKpis] = useState(['co2_henry', 'h2_diff'])
 
@@ -341,7 +362,7 @@ function App() {
             </TopIcon>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
             {envelopeFields.map((item) => (
               <div key={item.key} className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/5">
                 <div className="flex items-center justify-between text-sm text-slate-200/80">
@@ -363,6 +384,18 @@ function App() {
                   <span>{item.min + item.unit}</span>
                   <span>{item.max + item.unit}</span>
                 </div>
+                {item.key === 'salinity' && (
+                  <p className="mt-2 text-[11px] text-emerald-100/80">High salinity → test desal durability.</p>
+                )}
+                {item.key === 'pressure' && (
+                  <p className="mt-2 text-[11px] text-emerald-100/80">Higher pressure → shift uptake/isotherms.</p>
+                )}
+                {item.key === 'impurities' && (
+                  <p className="mt-2 text-[11px] text-emerald-100/80">Trace poisons can block binding sites.</p>
+                )}
+                {item.key === 'duration' && (
+                  <p className="mt-2 text-[11px] text-emerald-100/80">Cycle count for degradation horizon.</p>
+                )}
               </div>
             ))}
           </div>
@@ -388,7 +421,7 @@ function App() {
               <span className="text-sm text-slate-200/80">KPIs to prioritise</span>
               <span className="text-[11px] uppercase tracking-widest text-emerald-200/80">multi-select</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-h-[320px] overflow-y-auto pr-1">
               {kpiOptions.map((kpi) => {
                 const active = selectedKpis.includes(kpi.key)
                 return (
