@@ -39,6 +39,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generateError, setGenerateError] = useState('')
   const [generateMessage, setGenerateMessage] = useState('')
+  const generateAbortRef = useRef(null)
 
   const [unitCellVisible, setUnitCellVisible] = useState(true)
   const [supercell, setSupercell] = useState(2)
@@ -93,11 +94,21 @@ function App() {
   )
 
   const handleCreateCof = useCallback(async () => {
+    if (isGenerating && generateAbortRef.current) {
+      generateAbortRef.current.abort()
+      setGenerateError('Generation cancelled.')
+      setGenerateMessage('')
+      setIsGenerating(false)
+      return
+    }
+
+    const controller = new AbortController()
+    generateAbortRef.current = controller
     setIsGenerating(true)
     setGenerateError('')
     setGenerateMessage('')
     try {
-      const res = await fetch('/api/generate-cof', { method: 'POST' })
+      const res = await fetch('/api/generate-cof', { method: 'POST', signal: controller.signal })
       let data = null
       try {
         data = await res.json()
@@ -115,12 +126,17 @@ function App() {
       setGenerateMessage(`Created ${data.file.name}`)
       await fetchCifs(data.file.path)
     } catch (error) {
-      console.error('Failed to generate COF', error)
-      setGenerateError(error.message || 'Could not generate a COF. Check server logs.')
+      if (error.name === 'AbortError') {
+        setGenerateError('Generation cancelled.')
+      } else {
+        console.error('Failed to generate COF', error)
+        setGenerateError(error.message || 'Could not generate a COF. Check server logs.')
+      }
     } finally {
       setIsGenerating(false)
+      generateAbortRef.current = null
     }
-  }, [fetchCifs])
+  }, [fetchCifs, isGenerating])
 
   useEffect(() => {
     fetchCifs()
@@ -274,20 +290,24 @@ function App() {
               </button>
               <button
                 onClick={handleCreateCof}
-                disabled={isGenerating}
-                className={`button-soft flex items-center gap-2 rounded-xl bg-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow transition hover:bg-emerald-300 ${
-                  isGenerating ? 'opacity-80' : ''
+                className={`button-soft flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow transition ${
+                  isGenerating ? 'bg-rose-400 hover:bg-rose-300' : 'bg-emerald-400 hover:bg-emerald-300'
                 }`}
               >
                 {isGenerating ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-900 border-t-white" />
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-900 border-t-white" />
+                    Cancel
+                  </>
                 ) : (
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                    <path d="M12 3v18" />
-                    <path d="M3 12h18" />
-                  </svg>
+                  <>
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <path d="M12 3v18" />
+                      <path d="M3 12h18" />
+                    </svg>
+                    Create COF
+                  </>
                 )}
-                {isGenerating ? 'Creating...' : 'Create COF'}
               </button>
               <button onClick={() => fetchCifs()} className="button-soft flex items-center gap-2 rounded-xl bg-emerald-500/80 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow hover:bg-emerald-400">
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -500,11 +520,11 @@ function App() {
 
             <div ref={containerRef} className="h-full w-full" />
 
-            {isLoadingFile && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-charcoal/60">
+            {(isLoadingFile || isGenerating) && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/70">
                 <div className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3 text-sm text-emerald-100 ring-1 ring-emerald-400/30">
-                  <span className="h-2 w-2 animate-ping rounded-full bg-emerald-300" />
-                  Loading structure...
+                  <span className="h-3 w-3 animate-ping rounded-full bg-emerald-300" />
+                  {isGenerating ? 'Generating COF...' : 'Loading structure...'}
                 </div>
               </div>
             )}

@@ -11,13 +11,30 @@ const generatedDir = path.resolve(rootDir, 'generated_cofs')
 const listCifFiles = async (dir, prefix, source) => {
   try {
     const entries = await fs.promises.readdir(dir, { withFileTypes: true })
-    return entries
-      .filter((f) => f.isFile() && f.name.toLowerCase().endsWith('.cif'))
-      .map((f) => ({
-        name: f.name.replace(/\.cif$/i, ''),
-        path: `${prefix}/${f.name}`,
-        source,
-      }))
+    const files = entries.filter((f) => f.isFile() && f.name.toLowerCase().endsWith('.cif'))
+
+    const withMeta = await Promise.all(
+      files.map(async (f) => {
+        try {
+          const stat = await fs.promises.stat(path.join(dir, f.name))
+          return {
+            name: f.name.replace(/\.cif$/i, ''),
+            path: `${prefix}/${f.name}`,
+            source,
+            mtimeMs: stat.mtimeMs,
+          }
+        } catch {
+          return {
+            name: f.name.replace(/\.cif$/i, ''),
+            path: `${prefix}/${f.name}`,
+            source,
+            mtimeMs: 0,
+          }
+        }
+      }),
+    )
+
+    return withMeta.sort((a, b) => (b.mtimeMs || 0) - (a.mtimeMs || 0))
   } catch (error) {
     return []
   }
@@ -130,10 +147,19 @@ const createApiMiddleware = () => async (req, res, next) => {
           ? relativePath
           : `/generated_cofs/${result.filename || 'cof.cif'}`
 
+      let mtimeMs = Date.now()
+      try {
+        const stat = await fs.promises.stat(path.join(rootDir, normalizedPath.replace(/^\//, '')))
+        mtimeMs = stat.mtimeMs
+      } catch (e) {
+        // fallback to now
+      }
+
       const filePayload = {
         name: result.filename?.replace(/\.cif$/i, '') || result.cof_string || 'generated-cof',
         path: normalizedPath,
         source: 'generated',
+        mtimeMs,
       }
 
       return sendJson(res, { file: filePayload, raw: result })
@@ -157,7 +183,7 @@ const createApiMiddleware = () => async (req, res, next) => {
         listCifFiles(generatedDir, '/generated_cofs', 'generated'),
         listCifFiles(cifsDir, '/cifs', 'library'),
       ])
-      const payload = [...generatedFiles, ...cifsFiles]
+      const payload = [...generatedFiles, ...cifsFiles].sort((a, b) => (b.mtimeMs || 0) - (a.mtimeMs || 0))
       return sendJson(res, { files: payload })
     } catch (error) {
       return sendJson(res, { files: [], error: 'Failed to read CIF directories' }, 500)

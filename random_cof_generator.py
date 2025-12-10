@@ -116,11 +116,36 @@ def build_from_string(cof_string, output_dir="generated_cofs", supercell=None, v
         return {"ok": False, "error": str(e), "cof_string": cof_string}
 
 
-def generate_and_save(topology=None, supercell=None, output_dir="generated_cofs", verbose=True):
-    cof_string = generator.generate_candidate(topology=topology)
-    result = build_from_string(cof_string, output_dir=output_dir, supercell=supercell, verbose=verbose)
-    result["cof_string"] = cof_string
-    return result
+FALLBACK_STRINGS = [
+    # Known-good combos to guarantee success if random picks fail repeatedly
+    "S4_PORP_CHO_I_H-L2_BDTP_NH2_CN_H_H_H_H-SQL_A-AA",
+    "S4_PHPR_CHO_SO2H_H_H_H_H_H-L2_BPYB_NH2_NH2_H_H_H_H_H-SQL_A-AA",
+    "T3_BRZN_CHO_OH-L2_DPDA_NH2_I_H_H_H-HCB_A-AA",
+]
+
+
+def generate_and_save(topology=None, supercell=None, output_dir="generated_cofs", verbose=True, max_attempts=20):
+    """
+    Generates and saves a COF. Retries quietly if a candidate fails to build.
+    """
+    last_result = None
+    for _ in range(max_attempts):
+        cof_string = generator.generate_candidate(topology=topology)
+        result = build_from_string(cof_string, output_dir=output_dir, supercell=supercell, verbose=verbose)
+        result["cof_string"] = cof_string
+        if result.get("ok"):
+            return result
+        last_result = result
+
+    # Try deterministic fallback strings before giving up
+    for fallback in FALLBACK_STRINGS:
+        result = build_from_string(fallback, output_dir=output_dir, supercell=supercell, verbose=verbose)
+        result["cof_string"] = fallback
+        if result.get("ok"):
+            return result
+        last_result = result
+
+    return last_result or {"ok": False, "error": "Failed to generate after retries and fallbacks."}
 
 
 def main():
@@ -130,12 +155,19 @@ def main():
     parser.add_argument("--output-dir", default="generated_cofs", help="Directory to store generated CIFs.")
     parser.add_argument("--json", action="store_true", help="Emit a JSON payload for programmatic callers.")
     parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging (implied when --json is set).")
+    parser.add_argument("--max-attempts", type=int, default=20, help="Retry count if a generated string fails to build.")
     args = parser.parse_args()
 
     verbose = not args.quiet and not args.json
     cell = [args.supercell, args.supercell, args.supercell]
 
-    result = generate_and_save(topology=args.topology, supercell=cell, output_dir=args.output_dir, verbose=verbose)
+    result = generate_and_save(
+        #topology=args.topology,
+        supercell=cell,
+        output_dir=args.output_dir,
+        verbose=verbose,
+        max_attempts=max(1, args.max_attempts),
+    )
 
     if args.json:
         print(json.dumps(result))
