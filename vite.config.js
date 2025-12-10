@@ -7,6 +7,18 @@ import react from '@vitejs/plugin-react'
 const rootDir = process.cwd()
 const cifsDir = path.resolve(rootDir, 'public', 'cifs')
 const generatedDir = path.resolve(rootDir, 'generated_cofs')
+const validDir = path.resolve(rootDir, 'valid_cofs')
+const logFile = path.resolve(rootDir, 'backend.log')
+
+const writeLog = async (message) => {
+  const ts = new Date().toISOString()
+  const line = `[${ts}] ${message}\n`
+  try {
+    await fs.promises.appendFile(logFile, line, 'utf8')
+  } catch (err) {
+    console.error('Failed to write log', err)
+  }
+}
 
 const listCifFiles = async (dir, prefix, source) => {
   try {
@@ -74,47 +86,53 @@ const serveGeneratedFile = async (urlPath, req, res) => {
   return true
 }
 
-const runGenerator = () =>
-  new Promise((resolve, reject) => {
-    const pythonCmd = process.env.PYTHON || 'python3'
-    const scriptPath = path.resolve(rootDir, 'random_cof_generator.py')
+const ensureDir = async (dir) => {
+  try {
+    await fs.promises.mkdir(dir, { recursive: true })
+  } catch (e) {
+    // ignore
+  }
+}
 
-    const child = spawn(pythonCmd, [scriptPath, '--json', '--quiet'], { cwd: rootDir })
+const ensureUniqueName = async (dir, baseName, ext = '.cif') => {
+  let candidate = `${baseName}${ext}`
+  while (true) {
+    try {
+      await fs.promises.access(path.join(dir, candidate))
+      // exists, try another
+      candidate = `${baseName}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}${ext}`
+    } catch {
+      return candidate
+    }
+  }
+}
 
-    let stdout = ''
-    let stderr = ''
-    const timer = setTimeout(() => {
-      child.kill('SIGTERM')
-      reject(new Error('Generator timed out'))
-    }, 60000)
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-    child.stdout.on('data', (data) => {
-      stdout += data.toString()
-    })
-    child.stderr.on('data', (data) => {
-      stderr += data.toString()
-    })
-    child.on('error', (error) => {
-      clearTimeout(timer)
-      reject(error)
-    })
-    child.on('close', (code) => {
-      clearTimeout(timer)
-      if (code !== 0) {
-        const rawMessage = stderr.trim() || stdout.trim() || `Generator exited with code ${code}`
-        const message = rawMessage.split('\n').slice(-1)[0] || rawMessage
-        return reject(new Error(message))
-      }
+const sampleValidCof = async () => {
+  await ensureDir(generatedDir)
+  const entries = await fs.promises.readdir(validDir, { withFileTypes: true })
+  const candidates = entries.filter((f) => f.isFile() && f.name.toLowerCase().endsWith('.cif'))
+  if (!candidates.length) {
+    throw new Error('No .cif files found in valid_cofs')
+  }
+  const pick = candidates[Math.floor(Math.random() * candidates.length)]
+  const sourcePath = path.join(validDir, pick.name)
+  const destName = await ensureUniqueName(generatedDir, `cof-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`)
+  const destPath = path.join(generatedDir, destName)
 
-      const lines = stdout.trim().split('\n').filter(Boolean)
-      const payload = lines.length ? lines[lines.length - 1] : '{}'
-      try {
-        resolve(JSON.parse(payload))
-      } catch (error) {
-        reject(new Error('Could not parse generator output'))
-      }
-    })
-  })
+  await fs.promises.copyFile(sourcePath, destPath)
+  const stat = await fs.promises.stat(destPath)
+
+  writeLog(`Sampled ${pick.name} -> ${destName}`)
+
+  return {
+    ok: true,
+    path: destPath,
+    filename: destName,
+    mtimeMs: stat.mtimeMs,
+  }
+}
 
 const createApiMiddleware = () => async (req, res, next) => {
   const urlPath = (req.url || '').split('?')[0]
@@ -135,7 +153,8 @@ const createApiMiddleware = () => async (req, res, next) => {
       return sendJson(res, { error: 'Method not allowed' }, 405)
     }
     try {
-      const result = await runGenerator()
+      const result = await sampleValidCof()
+      await delay(5000)
       if (!result?.ok) {
         throw new Error(result?.error || 'Generator failed')
       }
@@ -162,8 +181,10 @@ const createApiMiddleware = () => async (req, res, next) => {
         mtimeMs,
       }
 
+      writeLog(`API generate-cof -> ${filePayload.name}`)
       return sendJson(res, { file: filePayload, raw: result })
     } catch (error) {
+      writeLog(`API generate-cof error: ${error.message}`)
       return sendJson(res, { error: error.message }, 500)
     }
   }
@@ -186,6 +207,7 @@ const createApiMiddleware = () => async (req, res, next) => {
       const payload = [...generatedFiles, ...cifsFiles].sort((a, b) => (b.mtimeMs || 0) - (a.mtimeMs || 0))
       return sendJson(res, { files: payload })
     } catch (error) {
+      writeLog(`API cifs error: ${error.message}`)
       return sendJson(res, { files: [], error: 'Failed to read CIF directories' }, 500)
     }
   }

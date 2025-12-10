@@ -138,19 +138,22 @@ def main():
     parser.add_argument("--supercell", type=int, default=1)
     parser.add_argument("--output-dir", default="generated_cofs")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging (implied when --json is set).")
     parser.add_argument("--max-attempts", type=int, default=20)
     args = parser.parse_args()
 
     generator = COFGenerator()
     cell = [args.supercell, args.supercell, args.supercell]
     
-    verbose = not args.json
+    #verbose = not args.json
+    verbose = True
     
     # Retry Loop
     result = {"ok": False, "error": "Max attempts reached"}
     
     for i in range(args.max_attempts):
         candidate_str = generator.generate_candidate(topology=args.topology)
+        print("hi")
         result = build_from_string(candidate_str, args.output_dir, cell, verbose)
         result["cof_string"] = candidate_str
         
