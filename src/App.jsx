@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import staticCifManifest from './cifManifest.json'
 
 const envelopeFields = [
   { key: 'temperature', label: 'Temperature', min: -20, max: 180, unit: '°C' },
@@ -61,6 +62,7 @@ function App() {
   const [generateError, setGenerateError] = useState('')
   const [generateMessage, setGenerateMessage] = useState('')
   const generateAbortRef = useRef(null)
+  const [apiAvailable, setApiAvailable] = useState(true)
 
   const [unitCellVisible, setUnitCellVisible] = useState(true)
   const [supercell, setSupercell] = useState(2)
@@ -76,10 +78,41 @@ function App() {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
 
+  const staticCifs = useMemo(() => (Array.isArray(staticCifManifest) ? staticCifManifest : []), [])
+
+  const applyCifList = useCallback((list, preferredPath) => {
+    setCifList(list)
+    setActiveCif((prev) => {
+      if (preferredPath) {
+        const matchIdx = list.findIndex((f) => f.path === preferredPath)
+        if (matchIdx >= 0) return matchIdx
+      }
+      return prev < list.length ? prev : 0
+    })
+  }, [])
+
+  const loadStaticCifs = useCallback(
+    (preferredPath) => {
+      const list = staticCifs.length > 0 ? staticCifs : fallbackCifs
+      applyCifList(list, preferredPath)
+      if (!list.length) {
+        setCifError('No CIFs bundled with this build.')
+      } else {
+        setCifError('Backend API unavailable. Using bundled CIFs.')
+      }
+    },
+    [applyCifList, staticCifs],
+  )
+
   const fetchCifs = useCallback(
     async (preferredPath) => {
       setCifLoading(true)
       setCifError('')
+      if (!apiAvailable) {
+        loadStaticCifs(preferredPath)
+        setCifLoading(false)
+        return
+      }
       try {
         const res = await fetch('/api/cifs', { cache: 'no-store' })
         if (!res.ok) throw new Error('Request failed')
@@ -88,33 +121,32 @@ function App() {
           ? data.files.filter((f) => f?.path?.toLowerCase().endsWith('.cif'))
           : []
 
-        const effectiveList = files.length > 0 ? files : fallbackCifs
+        const effectiveList = files.length > 0 ? files : staticCifs.length > 0 ? staticCifs : fallbackCifs
 
-        setCifList(effectiveList)
-        setActiveCif((prev) => {
-          if (preferredPath) {
-            const matchIdx = effectiveList.findIndex((f) => f.path === preferredPath)
-            if (matchIdx >= 0) return matchIdx
-          }
-          return prev < effectiveList.length ? prev : 0
-        })
+        applyCifList(effectiveList, preferredPath)
+        setApiAvailable(true)
 
         if (files.length === 0) {
-          setCifError('No CIFs found in /public/cifs or generated_cofs. Using bundled examples.')
+          setCifError('No CIFs found via API. Using bundled CIFs.')
         }
       } catch (error) {
         console.error('Failed to list CIFs', error)
-        setCifList(fallbackCifs)
-        setActiveCif(0)
-        setCifError('Could not scan files. Using bundled examples.')
+        setApiAvailable(false)
+        loadStaticCifs(preferredPath)
       } finally {
         setCifLoading(false)
       }
     },
-    [],
+    [apiAvailable, applyCifList, loadStaticCifs, staticCifs],
   )
 
   const handleCreateCof = useCallback(async () => {
+    if (!apiAvailable) {
+      setGenerateError('Generator API is not available in this static build.')
+      setGenerateMessage('')
+      return
+    }
+
     if (isGenerating && generateAbortRef.current) {
       generateAbortRef.current.abort()
       setGenerateError('Generation cancelled.')
@@ -157,7 +189,7 @@ function App() {
       setIsGenerating(false)
       generateAbortRef.current = null
     }
-  }, [fetchCifs, isGenerating])
+  }, [apiAvailable, fetchCifs, isGenerating])
 
   useEffect(() => {
     fetchCifs()
@@ -311,7 +343,8 @@ function App() {
               </button>
               <button
                 onClick={handleCreateCof}
-                className={`button-soft flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow transition ${
+                disabled={!apiAvailable}
+                className={`button-soft flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow transition disabled:cursor-not-allowed disabled:opacity-60 ${
                   isGenerating ? 'bg-rose-400 hover:bg-rose-300' : 'bg-emerald-400 hover:bg-emerald-300'
                 }`}
               >
@@ -320,13 +353,21 @@ function App() {
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-900 border-t-white" />
                     Cancel
                   </>
-                ) : (
+                ) : apiAvailable ? (
                   <>
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                       <path d="M12 3v18" />
                       <path d="M3 12h18" />
                     </svg>
                     Create COF
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <path d="M4 12h16" />
+                      <path d="M12 4v16" />
+                    </svg>
+                    Backend offline
                   </>
                 )}
               </button>
@@ -341,6 +382,11 @@ function App() {
             {(generateError || generateMessage) && (
               <p className={`text-xs ${generateError ? 'text-rose-200' : 'text-emerald-200'}`}>
                 {generateError || generateMessage}
+              </p>
+            )}
+            {!apiAvailable && (
+              <p className="text-xs text-amber-200">
+                Running in static mode (no backend). Using bundled CIFs; generator is disabled.
               </p>
             )}
           </div>
