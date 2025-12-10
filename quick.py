@@ -15,3 +15,5 @@ print(set(L2_CORES)-set(l2_list))
 print(set(T3_CORES)-set(t3_list))
 print(set(S4_CORES)-set(s4_list))
 print(set(H6_CORES)-set(h6_list))
+
+"S4_PHPR_NH2_H-L2_BTTP_CHO_Ph-SQL_A-AA"
