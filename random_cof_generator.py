@@ -1,7 +1,9 @@
-import pandas as pd
-import random
-import time
+import argparse
+import json
 import os
+import random
+import sys
+
 import pycofbuilder as pcb
 
 
@@ -82,49 +84,70 @@ class COFGenerator:
 # Initialize the Generator
 generator = COFGenerator(l2_list, t3_list, s4_list, r_list)
 
-# Generate a candidate string
-random_cof_string = generator.generate_candidate()
+def _log(message, verbose=True):
+    if verbose:
+        print(message)
 
-print(f"Generated String: {random_cof_string}")
 
-
-def build_from_string(cof_string):
+def build_from_string(cof_string, output_dir="generated_cofs", supercell=None, verbose=True):
     """
     Takes the generated string and runs the pycofbuilder assembly.
+    Returns a dict describing the result so callers can consume it programmatically.
     """
-    print(f"\n--- PROCESSING: {cof_string} ---")
-    
-    
+    _log(f"\n--- PROCESSING: {cof_string} ---", verbose)
+
     try:
-        # STEP 1: LOAD
-        # The string contains all info: Geometry, Chemistry, Topology
         cof = pcb.Framework(cof_string)
-        print(f"   -> Object created successfully.")
+        _log("   -> Object created successfully.", verbose)
 
-        # STEP 2: BUILD & SAVE
-        output_dir = "generated_cofs"
         if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        
-        # Supercell 1x1x1 is faster for testing, 2x2x2 looks better
-        cof.save(fmt='cif', supercell=[1, 1, 1], save_dir=output_dir)
-        
-        print(f"   -> ✅ Success! Saved to {output_dir}/{cof_string}.cif")
-        return True
+            os.makedirs(output_dir, exist_ok=True)
 
+        cell = supercell if supercell else [1, 1, 1]
+        cof.save(fmt="cif", supercell=cell, save_dir=output_dir)
+
+        filename = f"{cof_string}.cif"
+        saved_path = os.path.join(output_dir, filename)
+        _log(f"   -> ✅ Success! Saved to {saved_path}", verbose)
+
+        return {"ok": True, "path": saved_path, "filename": filename, "cof_string": cof_string, "supercell": cell}
     except Exception as e:
-        print(f"   -> ❌ Error: {e}")
-        return False
+        _log(f"   -> ❌ Error: {e}", verbose)
+        return {"ok": False, "error": str(e), "cof_string": cof_string}
 
-# ==========================================
-# EXECUTION
-# ==========================================
 
-# 1. Generate 3 Random COFs
-print("1. Generating Candidates...")
-candidate = generator.generate_candidate()
+def generate_and_save(topology=None, supercell=None, output_dir="generated_cofs", verbose=True):
+    cof_string = generator.generate_candidate(topology=topology)
+    result = build_from_string(cof_string, output_dir=output_dir, supercell=supercell, verbose=verbose)
+    result["cof_string"] = cof_string
+    return result
 
-# 2. Build them
-print("\n2. Building Structures...")
 
-build_from_string(candidate)
+def main():
+    parser = argparse.ArgumentParser(description="Generate a random COF and save to disk.")
+    parser.add_argument("--topology", help="Force a specific topology (e.g., HCB or SQL).")
+    parser.add_argument("--supercell", type=int, default=1, help="Supercell replication factor (applied uniformly).")
+    parser.add_argument("--output-dir", default="generated_cofs", help="Directory to store generated CIFs.")
+    parser.add_argument("--json", action="store_true", help="Emit a JSON payload for programmatic callers.")
+    parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging (implied when --json is set).")
+    args = parser.parse_args()
+
+    verbose = not args.quiet and not args.json
+    cell = [args.supercell, args.supercell, args.supercell]
+
+    result = generate_and_save(topology=args.topology, supercell=cell, output_dir=args.output_dir, verbose=verbose)
+
+    if args.json:
+        print(json.dumps(result))
+    else:
+        if result.get("ok"):
+            _log(f"Generated String: {result['cof_string']}", verbose=True)
+            _log(f"Saved: {result['path']}", verbose=True)
+        else:
+            _log("Generation failed.", verbose=True)
+
+    sys.exit(0 if result.get("ok") else 1)
+
+
+if __name__ == "__main__":
+    main()

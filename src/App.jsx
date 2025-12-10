@@ -16,9 +16,9 @@ const kpiOptions = [
 ]
 
 const fallbackCifs = [
-  { name: 'Aurora Hex COF', path: '/cifs/aurora_hex.cif', note: 'Hexagonal pores tuned for mixed-gas separation.' },
-  { name: 'Atlas Grid COF', path: '/cifs/atlas_grid.cif', note: 'Square channels to benchmark uptake kinetics.' },
-  { name: 'Nautilus Channel COF', path: '/cifs/nautilus_channel.cif', note: '1D channels to probe diffusivity and stability.' },
+  { name: 'Aurora Hex COF', path: '/cifs/aurora_hex.cif', note: 'Hexagonal pores tuned for mixed-gas separation.', source: 'bundled' },
+  { name: 'Atlas Grid COF', path: '/cifs/atlas_grid.cif', note: 'Square channels to benchmark uptake kinetics.', source: 'bundled' },
+  { name: 'Nautilus Channel COF', path: '/cifs/nautilus_channel.cif', note: '1D channels to probe diffusivity and stability.', source: 'bundled' },
 ]
 
 const TopIcon = ({ children }) => (
@@ -36,6 +36,9 @@ function App() {
   const [cifLoading, setCifLoading] = useState(true)
   const [cifError, setCifError] = useState('')
   const [activeCif, setActiveCif] = useState(0)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generateError, setGenerateError] = useState('')
+  const [generateMessage, setGenerateMessage] = useState('')
 
   const [unitCellVisible, setUnitCellVisible] = useState(true)
   const [supercell, setSupercell] = useState(2)
@@ -51,34 +54,73 @@ function App() {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
 
-  const fetchCifs = useCallback(async () => {
-    setCifLoading(true)
-    setCifError('')
-    try {
-      const res = await fetch('/api/cifs', { cache: 'no-store' })
-      if (!res.ok) throw new Error('Request failed')
-      const data = await res.json()
-      const files = Array.isArray(data?.files)
-        ? data.files.filter((f) => f?.path?.toLowerCase().endsWith('.cif'))
-        : []
+  const fetchCifs = useCallback(
+    async (preferredPath) => {
+      setCifLoading(true)
+      setCifError('')
+      try {
+        const res = await fetch('/api/cifs', { cache: 'no-store' })
+        if (!res.ok) throw new Error('Request failed')
+        const data = await res.json()
+        const files = Array.isArray(data?.files)
+          ? data.files.filter((f) => f?.path?.toLowerCase().endsWith('.cif'))
+          : []
 
-      if (files.length > 0) {
-        setCifList(files)
-        setActiveCif((prev) => (prev < files.length ? prev : 0))
-      } else {
+        const effectiveList = files.length > 0 ? files : fallbackCifs
+
+        setCifList(effectiveList)
+        setActiveCif((prev) => {
+          if (preferredPath) {
+            const matchIdx = effectiveList.findIndex((f) => f.path === preferredPath)
+            if (matchIdx >= 0) return matchIdx
+          }
+          return prev < effectiveList.length ? prev : 0
+        })
+
+        if (files.length === 0) {
+          setCifError('No CIFs found in /public/cifs or generated_cofs. Using bundled examples.')
+        }
+      } catch (error) {
+        console.error('Failed to list CIFs', error)
         setCifList(fallbackCifs)
         setActiveCif(0)
-        setCifError('No CIFs found in /public/cifs. Using bundled examples.')
+        setCifError('Could not scan files. Using bundled examples.')
+      } finally {
+        setCifLoading(false)
       }
+    },
+    [],
+  )
+
+  const handleCreateCof = useCallback(async () => {
+    setIsGenerating(true)
+    setGenerateError('')
+    setGenerateMessage('')
+    try {
+      const res = await fetch('/api/generate-cof', { method: 'POST' })
+      let data = null
+      try {
+        data = await res.json()
+      } catch (err) {
+        data = null
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to generate COF.')
+      }
+      if (!data?.file?.path) {
+        throw new Error(data?.error || 'Generator returned no file.')
+      }
+
+      setGenerateMessage(`Created ${data.file.name}`)
+      await fetchCifs(data.file.path)
     } catch (error) {
-      console.error('Failed to list CIFs', error)
-      setCifList(fallbackCifs)
-      setActiveCif(0)
-      setCifError('Could not scan /public/cifs. Using bundled examples.')
+      console.error('Failed to generate COF', error)
+      setGenerateError(error.message || 'Could not generate a COF. Check server logs.')
     } finally {
-      setCifLoading(false)
+      setIsGenerating(false)
     }
-  }, [])
+  }, [fetchCifs])
 
   useEffect(() => {
     fetchCifs()
@@ -220,22 +262,46 @@ function App() {
               <p className="text-base font-semibold text-white">Environment-aware COF Explorer</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="button-soft flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold text-emerald-200 ring-1 ring-white/10 hover:bg-white/10">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M12 3v13" />
-                <path d="M6 12l6 6 6-6" />
-                <path d="M4 21h16" />
-              </svg>
-              Export snapshot
-            </button>
-            <button onClick={fetchCifs} className="button-soft flex items-center gap-2 rounded-xl bg-emerald-500/80 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow hover:bg-emerald-400">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M8 12h8M12 8v8" />
-              </svg>
-              Rescan /cifs
-            </button>
+          <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex items-center gap-3">
+              <button className="button-soft flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold text-emerald-200 ring-1 ring-white/10 hover:bg-white/10">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M12 3v13" />
+                  <path d="M6 12l6 6 6-6" />
+                  <path d="M4 21h16" />
+                </svg>
+                Export snapshot
+              </button>
+              <button
+                onClick={handleCreateCof}
+                disabled={isGenerating}
+                className={`button-soft flex items-center gap-2 rounded-xl bg-emerald-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow transition hover:bg-emerald-300 ${
+                  isGenerating ? 'opacity-80' : ''
+                }`}
+              >
+                {isGenerating ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-900 border-t-white" />
+                ) : (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                    <path d="M12 3v18" />
+                    <path d="M3 12h18" />
+                  </svg>
+                )}
+                {isGenerating ? 'Creating...' : 'Create COF'}
+              </button>
+              <button onClick={() => fetchCifs()} className="button-soft flex items-center gap-2 rounded-xl bg-emerald-500/80 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-glow hover:bg-emerald-400">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M8 12h8M12 8v8" />
+                </svg>
+                Rescan files
+              </button>
+            </div>
+            {(generateError || generateMessage) && (
+              <p className={`text-xs ${generateError ? 'text-rose-200' : 'text-emerald-200'}`}>
+                {generateError || generateMessage}
+              </p>
+            )}
           </div>
         </div>
       </header>
@@ -335,12 +401,23 @@ function App() {
             <div className="glass-panel glow-border relative overflow-hidden rounded-2xl p-4">
               <p className="text-sm text-emerald-100">Selected CIF</p>
               <p className="mt-1 text-xl font-semibold text-white">{activeFile?.name || 'None selected'}</p>
-              <p className="mt-2 text-sm text-slate-300">{activeFile?.note || 'Drop your .cif files into /public/cifs.'}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                {activeFile?.source && (
+                  <span className="rounded-full bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-200">
+                    {activeFile.source === 'generated'
+                      ? 'generated_cofs'
+                      : activeFile.source === 'library'
+                        ? '/public/cifs'
+                        : activeFile.source}
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-sm text-slate-300">
+                {activeFile?.note || 'Drop .cif files into /public/cifs or hit Create COF to add new ones.'}
+              </p>
               <div className="mt-4 rounded-xl border border-emerald-400/20 bg-charcoal/60 px-3 py-2 text-xs text-emerald-100">
                 <p className="font-semibold uppercase tracking-wide text-emerald-200/80">Directory</p>
-                <p className="mt-1 font-mono text-[13px] text-slate-100">
-                  {activeFile?.path ? `public${activeFile.path}` : 'No file loaded'}
-                </p>
+                <p className="mt-1 font-mono text-[13px] text-slate-100">{activeFile?.path || 'No file loaded'}</p>
               </div>
               {cifError && <p className="mt-3 text-xs text-amber-300/90">{cifError}</p>}
             </div>
@@ -440,7 +517,7 @@ function App() {
 
             {!activeFile && !isLoadingFile && (
               <div className="absolute inset-0 flex items-center justify-center bg-charcoal/60 text-sm text-slate-200">
-                No CIF files available. Drop .cif files into /public/cifs and hit Rescan.
+                No CIF files available. Drop .cif files into /public/cifs, create one, and hit Rescan.
               </div>
             )}
           </div>
@@ -455,7 +532,9 @@ function App() {
               </div>
               <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
                 {cifLoading && <p className="text-xs text-slate-300">Scanning directory...</p>}
-                {!cifLoading && cifList.length === 0 && <p className="text-xs text-slate-300">No files found. Drop .cif files into /public/cifs.</p>}
+                {!cifLoading && cifList.length === 0 && (
+                  <p className="text-xs text-slate-300">No files found. Drop .cif files into /public/cifs or generate a new one.</p>
+                )}
                 {cifList.map((file, idx) => (
                   <button
                     key={file.path}
@@ -467,7 +546,14 @@ function App() {
                     }`}
                   >
                     <div>
-                      <p className="font-semibold">{file.name || file.path.split('/').pop()}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold">{file.name || file.path.split('/').pop()}</p>
+                        {file.source && (
+                          <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-200">
+                            {file.source === 'generated' ? 'generated' : file.source === 'library' ? 'cifs' : file.source}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-400">{file.path}</p>
                     </div>
                     <span className="text-[10px] uppercase tracking-wide text-emerald-200/80">Select</span>
@@ -493,8 +579,8 @@ function App() {
                       : 'Initializing viewer...'}
               </div>
               <p className="mt-2 text-xs text-slate-400">
-                Using 3Dmol for CIF rendering. Rescan picks up any new files added to /public/cifs. Toggle the unit cell or expand the
-                supercell to inspect pore geometry.
+                Using 3Dmol for CIF rendering. Rescan picks up any new files added to /public/cifs or generated_cofs. Toggle the unit cell
+                or expand the supercell to inspect pore geometry.
               </p>
             </div>
           </div>
