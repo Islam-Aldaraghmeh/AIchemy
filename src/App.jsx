@@ -52,6 +52,7 @@ function App() {
     duration: 1000,
   })
   const [saveName, setSaveName] = useState('desert-prototype')
+  const [operationContext, setOperationContext] = useState('')
   const [selectedKpis, setSelectedKpis] = useState(['co2_henry', 'h2_diff'])
 
   const [cifList, setCifList] = useState(fallbackCifs)
@@ -460,6 +461,23 @@ function App() {
             <button className="button-soft w-full rounded-xl bg-emerald-500/80 px-3 py-2 text-sm font-semibold text-emerald-950 shadow-glow hover:bg-emerald-400">
               Save .cif preset
             </button>
+          </div>
+
+          <div className="space-y-3 rounded-2xl bg-white/5 p-4 ring-1 ring-white/5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-200/80">Additional Qualitative Operation Context</span>
+              <span className="text-[11px] uppercase tracking-widest text-emerald-200/80">notes</span>
+            </div>
+            <textarea
+              value={operationContext}
+              onChange={(e) => setOperationContext(e.target.value)}
+              rows={3}
+              className="w-full rounded-xl border border-stroke/70 bg-charcoal px-3 py-2 text-sm font-medium text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+              placeholder="e.g., fouling history, preferred solvents, test caveats"
+            />
+            <p className="text-[11px] text-slate-400">
+              Capture non-numeric context the generator should consider (operation quirks, sample history, constraints).
+            </p>
           </div>
 
           <div className="space-y-3 rounded-2xl bg-white/5 p-4 ring-1 ring-white/5">

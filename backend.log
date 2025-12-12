@@ -31,3 +31,7 @@ Symm: True, Core: False, Connector: True, Functional Group:True
 [2025-12-11T10:09:16.356Z] API generate-cof -> cof-1765447751352-qzhe
 [2025-12-11T10:12:29.248Z] Sampled 20000N2.cif -> cof-1765447949246-81g0.cif
 [2025-12-11T10:12:34.250Z] API generate-cof -> cof-1765447949246-81g0
+[2025-12-11T12:04:44.766Z] Sampled 20151N2.cif -> cof-1765454684765-tjv8.cif
+[2025-12-11T12:04:49.767Z] API generate-cof -> cof-1765454684765-tjv8
+[2025-12-11T12:07:51.524Z] Sampled 20090N2.cif -> cof-1765454871521-dvxb.cif
+[2025-12-11T12:07:56.525Z] API generate-cof -> cof-1765454871521-dvxb
